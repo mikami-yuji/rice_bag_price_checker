@@ -1,5 +1,6 @@
 const MIN_ORDER_LOT_METERS = 4000;
 let lastCalculationResults = {}; // To store the results for download
+let simulationChart = null; // Global variable for the chart instance
 
 // --- Stepper Functions ---
 function incrementAnnualUsage() {
@@ -102,6 +103,10 @@ function resetForm() {
     document.getElementById('result-output').innerHTML = '';
     document.getElementById('simulationTable').textContent = '';
     document.getElementById('recoveryCheck').innerHTML = '';
+    if (simulationChart) {
+        simulationChart.destroy();
+        simulationChart = null;
+    }
     localStorage.removeItem('riceBagCalculatorInputs');
     lastCalculationResults = {};
 }
@@ -288,6 +293,102 @@ function generateSimulationTable(r) {
 
     tableHtml += '</tbody></table>';
     tableElement.innerHTML = tableHtml;
+
+    // Call chart generation
+    updateSimulationChart(r, maxOrders);
+}
+
+function updateSimulationChart(r, maxOrders) {
+    const canvas = document.getElementById('simulationChart');
+    if (!canvas) return; // Guard clause
+    const ctx = canvas.getContext('2d');
+
+    // Prepare data
+    const labels = [];
+    const data = [];
+    let cumulativeBenefit = -r.totalPlateCost;
+
+    for (let order = 1; order <= maxOrders; order++) {
+        labels.push(order + '回');
+        cumulativeBenefit += r.costBenefitPerOrder;
+        data.push(cumulativeBenefit);
+    }
+
+    // Destroy existing chart if it exists
+    if (simulationChart) {
+        simulationChart.destroy();
+    }
+
+    simulationChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '累計メリット額',
+                data: data,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.1,
+                pointRadius: 3,
+                pointBackgroundColor: (context) => {
+                    const value = context.raw;
+                    return value >= 0 ? '#4CAF50' : '#F44336';
+                },
+                pointBorderColor: (context) => {
+                    const value = context.raw;
+                    return value >= 0 ? '#4CAF50' : '#F44336';
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true, // Prevents huge height
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function (value, index, values) {
+                            return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumSignificantDigits: 3 }).format(value);
+                        }
+                    },
+                    grid: {
+                        color: (context) => {
+                            if (context.tick.value === 0) {
+                                return '#000'; // Emphasize zero line
+                            }
+                            return '#e0e0e0';
+                        },
+                        lineWidth: (context) => {
+                            if (context.tick.value === 0) {
+                                return 2;
+                            }
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 // --- Excel Download Function ---

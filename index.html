@@ -128,10 +128,14 @@
             <button id="downloadButton" onclick="downloadForExcel()">Excel形式でダウンロード</button>
             
             <h3>回収シミュレーション（発注回数別累計メリット）</h3>
+            <div style="margin-bottom: 20px;">
+                <canvas id="simulationChart"></canvas>
+            </div>
             <pre id="simulationTable"></pre>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
     <div id="footer-branding">
         <p>提供：</p>
