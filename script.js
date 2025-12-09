@@ -55,20 +55,36 @@ function saveInputs() {
 function loadInputs() {
     const savedInputs = localStorage.getItem('riceBagCalculatorInputs');
     if (savedInputs) {
-        const inputs = JSON.parse(savedInputs);
-        if (inputs.bagType) document.querySelector(`input[name="bagType"][value="${inputs.bagType}"]`).checked = true;
-        if (inputs.bagLengthType) document.querySelector(`input[name="bagLengthType"][value="${inputs.bagLengthType}"]`).checked = true;
-        if (inputs.bagSize) document.getElementById('bagSize').value = inputs.bagSize;
-        if (inputs.plateCount) document.getElementById('plateCount').value = inputs.plateCount;
-        if (inputs.currentPrice) document.getElementById('currentPrice').value = inputs.currentPrice;
-        if (inputs.newBagPrice) document.getElementById('newBagPrice').value = inputs.newBagPrice;
-        if (inputs.newBagCost) document.getElementById('newBagCost').value = inputs.newBagCost;
-        if (inputs.plateCost) document.getElementById('plateCost').value = inputs.plateCost;
-        if (inputs.plateCostPrice) document.getElementById('plateCostPrice').value = inputs.plateCostPrice;
-        if (inputs.annualUsage) document.getElementById('annualUsage').value = inputs.annualUsage;
-        if (inputs.orderVolumeMeters) document.getElementById('orderVolumeMeters').value = inputs.orderVolumeMeters;
+        try {
+            const inputs = JSON.parse(savedInputs);
+            if (inputs.bagType) {
+                const el = document.querySelector(`input[name="bagType"][value="${inputs.bagType}"]`);
+                if (el) el.checked = true;
+            }
+            if (inputs.bagLengthType) {
+                const el = document.querySelector(`input[name="bagLengthType"][value="${inputs.bagLengthType}"]`);
+                if (el) el.checked = true;
+            }
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            };
+            setVal('bagSize', inputs.bagSize);
+            setVal('plateCount', inputs.plateCount);
+            setVal('currentPrice', inputs.currentPrice);
+            setVal('newBagPrice', inputs.newBagPrice);
+            setVal('newBagCost', inputs.newBagCost);
+            setVal('plateCost', inputs.plateCost);
+            setVal('plateCostPrice', inputs.plateCostPrice);
+            setVal('annualUsage', inputs.annualUsage);
+            setVal('orderVolumeMeters', inputs.orderVolumeMeters);
+        } catch (e) {
+            console.error('Failed to load inputs:', e);
+            localStorage.removeItem('riceBagCalculatorInputs');
+        }
     }
 }
+
 
 function resetForm() {
     document.getElementById('bagTypeRoll').checked = true;
@@ -250,7 +266,10 @@ function generateSimulationTable(r) {
 
     let tableHtml = '<table class="simulation-table"><thead><tr><th>発注回数</th><th>累計メリット額</th><th>状態</th></tr></thead><tbody>';
     let cumulativeBenefit = -r.totalPlateCost;
-    const maxOrders = Math.max(18, Math.ceil(r.annualOrderCount) + 6, r.recoveryStartOrder + 6);
+
+    // Safety cap: Limit to 300 rows to prevent freezing
+    const MAX_ROWS = 300;
+    const maxOrders = Math.min(MAX_ROWS, Math.max(18, Math.ceil(r.annualOrderCount) + 6, r.recoveryStartOrder + 6));
 
     for (let order = 1; order <= maxOrders; order++) {
         cumulativeBenefit += r.costBenefitPerOrder;
@@ -262,6 +281,11 @@ function generateSimulationTable(r) {
         }
         tableHtml += `<tr><td>${order}</td><td class="${statusClass}">${cumulativeBenefit.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' })}</td><td class="${statusClass}">${status}${order === r.recoveryStartOrder ? '  <span class="recovery-marker">← 回収完了</span>' : ''}</td></tr>`;
     }
+
+    if (maxOrders === MAX_ROWS && maxOrders < r.recoveryStartOrder) {
+        tableHtml += `<tr><td colspan="3" style="text-align:center; color:#666;">... 以降も続きます（表示上限300回） ...</td></tr>`;
+    }
+
     tableHtml += '</tbody></table>';
     tableElement.innerHTML = tableHtml;
 }
@@ -304,7 +328,7 @@ function downloadForExcel() {
     addRow('袋の長さ', r.inputs.bagLengthType === 'normal' ? '通常' : 'エコ（-30mm）');
     addRow('年間使用量(m)', r.inputs.annualUsage);
     addRow('1回の発注m数', r.inputs.orderVolumeMeters);
-    
+
     const currentPriceFormatted = r.inputs.currentPrice.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
     addRow('現行品 単価', currentPriceFormatted);
 
@@ -341,7 +365,7 @@ function downloadForExcel() {
     const currentAnnualTotalFormatted = r.currentAnnualTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
     const newBagAnnualTotalFormatted = r.newBagAnnualTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
     addRow('年間合計', currentAnnualTotalFormatted, newBagAnnualTotalFormatted);
-    
+
     // --- PAGE BREAK ---
     for (let i = 0; i < 12; i++) {
         addRow('');
@@ -374,7 +398,7 @@ function downloadForExcel() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 
