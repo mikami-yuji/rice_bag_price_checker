@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>米袋価格メリット計算ツール</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="print.css" media="print">
 </head>
+
 <body>
 
     <h1>米袋価格メリット計算ツール</h1>
@@ -44,7 +47,8 @@
                             <input type="radio" id="lengthTypeNormal" name="bagLengthType" value="normal" checked>
                             <label for="lengthTypeNormal" style="font-weight: normal; margin-bottom: 0;">通常</label>
                             <input type="radio" id="lengthTypeEco" name="bagLengthType" value="eco">
-                            <label for="lengthTypeEco" style="font-weight: normal; margin-bottom: 0;" title="選択すると、米袋の長さが30mm短くなります。">エコ（-30mm）</label>
+                            <label for="lengthTypeEco" style="font-weight: normal; margin-bottom: 0;"
+                                title="選択すると、米袋の長さが30mm短くなります。">エコ（-30mm）</label>
                         </div>
                     </div>
                 </div>
@@ -125,8 +129,8 @@
             <div id="recoveryCheck"></div>
             <h3>計算結果</h3>
             <div id="result-output"></div>
-            <button id="downloadButton" onclick="downloadForExcel()">Excel形式でダウンロード</button>
-            
+            <button id="printButton" onclick="window.print()">レポートを印刷</button>
+
             <h3>回収シミュレーション（発注回数別累計メリット）</h3>
             <div style="margin-bottom: 20px;">
                 <canvas id="simulationChart"></canvas>
@@ -140,8 +144,10 @@
     <div id="footer-branding">
         <p>提供：</p>
         <a href="https://www.asahipac.co.jp/" target="_blank" rel="noopener noreferrer">
-            <img src="https://www.asahipac.co.jp/cms/wp-content/themes/asahipac/images/logo.png" alt="Asahipac Logo" class="asahipac-logo">
+            <img src="https://www.asahipac.co.jp/cms/wp-content/themes/asahipac/images/logo.png" alt="Asahipac Logo"
+                class="asahipac-logo">
         </a>
     </div>
 </body>
+
 </html>

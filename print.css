@@ -1,0 +1,87 @@
+@media print {
+
+    /* Hide input elements, buttons, and footer */
+    .input-section,
+    .reset-button,
+    #printButton,
+    #footer-branding {
+        display: none !important;
+    }
+
+    /* Reset layout for print */
+    body {
+        background-color: white;
+        margin: 0;
+        padding: 20px;
+        max-width: 100%;
+        color: black;
+    }
+
+    .container {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .main-layout {
+        display: block;
+        /* Override grid */
+    }
+
+    .results {
+        display: block !important;
+        background-color: white;
+        border: none;
+        padding: 0;
+    }
+
+    .results h3 {
+        color: black;
+        border-bottom: 2px solid #333;
+        margin-top: 30px;
+    }
+
+    .result-item {
+        border-bottom: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+
+    /* Chart adjustments for print */
+    #simulationChart {
+        max-height: 400px;
+        page-break-inside: avoid;
+    }
+
+    /* Table adjustments */
+    .simulation-table,
+    .comparison-table {
+        font-size: 10pt;
+        width: 100%;
+    }
+
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    /* Ensure title is visible */
+    h1 {
+        display: block;
+        font-size: 24px;
+        text-align: left;
+        border-bottom: none;
+        margin-bottom: 10px;
+    }
+}

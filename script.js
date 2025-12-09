@@ -53,6 +53,7 @@ function saveInputs() {
     localStorage.setItem('riceBagCalculatorInputs', JSON.stringify(inputs));
 }
 
+
 function loadInputs() {
     const savedInputs = localStorage.getItem('riceBagCalculatorInputs');
     if (savedInputs) {
@@ -392,115 +393,7 @@ function updateSimulationChart(r, maxOrders) {
 }
 
 // --- Excel Download Function ---
-function downloadForExcel() {
-    const r = lastCalculationResults;
-    if (!r || Object.keys(r).length === 0) {
-        alert('先に計算を実行し、結果を表示してください。');
-        return;
-    }
 
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const fileName = `価格比較表_${yyyy}${mm}${dd}.csv`;
-    const fullDateStr = `${yyyy}/${mm}/${dd}`;
-
-    const rows = [];
-    const addRow = (...cols) => {
-        const escapedCols = cols.map(col => `"${String(col).replace(/"/g, '""')}"`);
-        rows.push(escapedCols.join(','));
-    };
-
-    // --- Header ---
-    addRow('米袋価格メリット計算ツール - 計算結果');
-    addRow('計算日', fullDateStr);
-    addRow('');
-
-    // --- Separator ---
-    addRow('---', '---', '---');
-    addRow('');
-
-    // --- Basic Info ---
-    addRow('■ 基本情報');
-    addRow('項目', '内容');
-    addRow('袋の種類', r.inputs.bagType === 'roll' ? 'ロール袋' : '単袋');
-    addRow('米袋のキロ数', r.inputs.bagSizeLabel);
-    addRow('袋の長さ', r.inputs.bagLengthType === 'normal' ? '通常' : 'エコ（-30mm）');
-    addRow('年間使用量(m)', r.inputs.annualUsage);
-    addRow('1回の発注m数', r.inputs.orderVolumeMeters);
-
-    const currentPriceFormatted = r.inputs.currentPrice.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('現行品 単価', currentPriceFormatted);
-
-    const newBagPriceFormatted = r.inputs.newBagPrice.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('ご提案の米袋 単価', newBagPriceFormatted);
-
-    const plateCostFormatted = r.inputs.plateCost.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('製版代 単価', plateCostFormatted);
-    addRow('製版数', r.inputs.plateCount);
-    addRow('');
-
-    // --- Cost Benefit ---
-    addRow('■ コストメリット');
-    addRow('項目', '金額');
-    const annualCostBenefitFormatted = r.annualCostBenefit.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('年間コストメリット総額', annualCostBenefitFormatted);
-    addRow(r.costBenefitLabel, `${r.costBenefitPerUnit.toFixed(2)} 円`);
-    const costBenefitPerOrderFormatted = r.costBenefitPerOrder.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('1回の発注あたりのコストメリット額', costBenefitPerOrderFormatted);
-    const totalPlateCostFormatted = r.totalPlateCost.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('製版代総額（初期投資）', totalPlateCostFormatted);
-    const recoveryStartOrderFormatted = isFinite(r.recoveryStartOrder) ? `${r.recoveryStartOrder} 回目` : 'N/A';
-    addRow('初期投資回収完了の発注回数', recoveryStartOrderFormatted);
-    addRow('');
-
-    // --- Comparison Table ---
-    addRow('■ 合計金額比較');
-    addRow('項目', '現行品', 'ご提案の米袋');
-    const currentOrderTotalFormatted = r.currentOrderTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    const newBagOrderTotalFormatted = r.newBagOrderTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('1回の発注合計', currentOrderTotalFormatted, newBagOrderTotalFormatted);
-    const newBagOrderTotalWithPlateFormatted = r.newBagOrderTotalWithPlate.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('1回の発注合計（製版代含む）', '-', newBagOrderTotalWithPlateFormatted);
-    const currentAnnualTotalFormatted = r.currentAnnualTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    const newBagAnnualTotalFormatted = r.newBagAnnualTotal.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-    addRow('年間合計', currentAnnualTotalFormatted, newBagAnnualTotalFormatted);
-
-    // --- PAGE BREAK ---
-    for (let i = 0; i < 12; i++) {
-        addRow('');
-    }
-
-    // --- Simulation (on "page 2") ---
-    if (isFinite(r.recoveryStartOrder)) {
-        addRow('■ 回収シミュレーション');
-        addRow('発注回数', '累計メリット額', '状態');
-        let cumulativeBenefit = -r.totalPlateCost;
-        const maxOrders = Math.max(18, Math.ceil(r.annualOrderCount) + 6, r.recoveryStartOrder + 6);
-        for (let order = 1; order <= maxOrders; order++) {
-            cumulativeBenefit += r.costBenefitPerOrder;
-            let status = '回収中';
-            if (order >= r.recoveryStartOrder) {
-                status = '✅ 回収完了';
-            }
-            const cumulativeBenefitFormatted = cumulativeBenefit.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' });
-            addRow(order, cumulativeBenefitFormatted, status);
-        }
-    }
-
-    const csvString = rows.join('\n');
-    const blob = new Blob(['\uFEFF', csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-}
 
 
 // --- Event Listeners ---
