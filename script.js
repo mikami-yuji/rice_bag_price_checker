@@ -2,38 +2,7 @@ const MIN_ORDER_LOT_METERS = 4000;
 let lastCalculationResults = {}; // To store the results for download
 let simulationChart = null; // Global variable for the chart instance
 
-// --- Stepper Functions ---
-function incrementAnnualUsage() {
-    const input = document.getElementById('annualUsage');
-    let currentValue = parseInt(input.value) || 0;
-    input.value = currentValue + 4000;
-    calculate();
-}
 
-function decrementAnnualUsage() {
-    const input = document.getElementById('annualUsage');
-    let currentValue = parseInt(input.value) || 0;
-    if (currentValue > 4000) {
-        input.value = currentValue - 4000;
-        calculate();
-    }
-}
-
-function incrementOrderVolume() {
-    const input = document.getElementById('orderVolumeMeters');
-    let currentValue = parseInt(input.value) || 0;
-    input.value = currentValue + 4000;
-    calculate();
-}
-
-function decrementOrderVolume() {
-    const input = document.getElementById('orderVolumeMeters');
-    let currentValue = parseInt(input.value) || 0;
-    if (currentValue > 4000) {
-        input.value = currentValue - 4000;
-        calculate();
-    }
-}
 
 // --- Input Persistence ---
 function saveInputs() {
@@ -98,8 +67,8 @@ function resetForm() {
     document.getElementById('newBagCost').value = '';
     document.getElementById('plateCost').value = '';
     document.getElementById('plateCostPrice').value = '';
-    document.getElementById('annualUsage').value = '4000';
-    document.getElementById('orderVolumeMeters').value = '4000';
+    document.getElementById('annualUsage').value = '';
+    document.getElementById('orderVolumeMeters').value = '';
     document.getElementById('results').style.display = 'none';
     document.getElementById('result-output').innerHTML = '';
     document.getElementById('simulationTable').textContent = '';
@@ -401,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const idsToWatch = [
         'bagTypeSingle', 'bagTypeRoll', 'bagSize', 'currentPrice', 'newBagCost',
         'newBagPrice', 'plateCost', 'plateCostPrice', 'plateCount',
-        'annualUsage', 'lengthTypeNormal', 'lengthTypeEco'
+        'annualUsage', 'orderVolumeMeters', 'lengthTypeNormal', 'lengthTypeEco'
     ];
 
     idsToWatch.forEach(id => {
